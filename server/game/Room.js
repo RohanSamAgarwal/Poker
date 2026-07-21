@@ -14,7 +14,7 @@
 
 import { Hand } from './Hand.js';
 import { defaultSettings, normalizeSettings } from './settings.js';
-import { botName, decide as botDecide } from './Bot.js';
+import { pickBotName, decide as botDecide } from './Bot.js';
 
 let seq = 0;
 const uid = (prefix) => `${prefix}:${Date.now().toString(36)}:${(seq++).toString(36)}`;
@@ -37,6 +37,8 @@ export class Room {
     this.bustOrder = []; // players in the order they busted (first out = index 0)
     this.actionTimer = null;    // per-turn clock handle (connected humans)
     this.actionDeadline = null; // timestamp the current actor must act by
+    this.actionFeed = [];       // rolling log of readable actions for the UI feed
+    this.feedSeq = 0;           // monotonic id so the client can detect new entries
 
     // Timing hooks (injectable for tests).
     this.now = opts.now || (() => Date.now());
@@ -223,11 +225,12 @@ export class Room {
     this._requireLobby();
     if (seatIndex < 0 || seatIndex >= this.seats.length) throw new Error('Bad seat');
     if (this.seats[seatIndex]) throw new Error('Seat taken');
+    const usedNames = new Set(this._occupied().map((s) => s.name));
     this.seats[seatIndex] = {
       index: seatIndex,
       kind: 'bot',
       id: `bot:${seatIndex}`,
-      name: botName(difficulty, seatIndex),
+      name: pickBotName(usedNames),
       botDifficulty: difficulty,
       stack: this.settings.startingChips,
       status: 'active',
@@ -288,6 +291,13 @@ export class Room {
       blinds: this._effectiveBlinds(),
       deck: this.deckFactory ? this.deckFactory() : undefined,
     });
+
+    // Feed: mark the new hand and who posted the blinds.
+    this._pushFeed(`— Hand #${this.handCount} —`);
+    const sb = this.hand.seats[this.hand.sbPos];
+    const bb = this.hand.seats[this.hand.bbPos];
+    if (sb) this._pushFeed(`${this._name(sb.id)} posts small blind ${sb.streetCommitted}`);
+    if (bb) this._pushFeed(`${this._name(bb.id)} posts big blind ${bb.streetCommitted}`);
 
     if (this.hand.isComplete()) { this._settleHand(); return; }
     this.onChange();
@@ -375,10 +385,46 @@ export class Room {
 
   /** Apply a validated action then continue the loop (bot chaining / settle). */
   _applyAndContinue(id, action) {
+    // Describe the action for the UI feed BEFORE applying (so we can read the
+    // pre-action legal amounts, e.g. how much a call is for).
+    const seat = this._occupied().find((s) => s.id === id);
+    const legal = this.hand.legalActions(id);
+    if (seat && legal) this._pushFeed(this._actionText(seat.name, action, legal, this.hand.seat(id)));
+
     this.hand.act(id, action);
     if (this.hand.isComplete()) { this._settleHand(); return; }
     this.onChange();
     this._driveActor();
+  }
+
+  // --- Action feed -----------------------------------------------------------
+  _pushFeed(text) {
+    if (!text) return;
+    this.feedSeq += 1;
+    this.actionFeed.push({ seq: this.feedSeq, text });
+    if (this.actionFeed.length > 20) this.actionFeed.shift();
+  }
+
+  _name(id) {
+    const s = this._occupied().find((x) => x.id === id);
+    return s ? s.name : (this.lastResult?.names?.[id] || 'Player');
+  }
+
+  /** Human-readable text for one action, e.g. "Velma raises to 60". */
+  _actionText(name, action, legal, hseat) {
+    const allInBet = action.amount != null && action.amount >= legal.maxRaiseTo;
+    switch (action.type) {
+      case 'fold': return `${name} folds`;
+      case 'check': return `${name} checks`;
+      case 'call': {
+        const allIn = hseat && legal.callAmount >= hseat.stack && hseat.stack > 0;
+        return `${name} calls ${legal.callAmount}${allIn ? ' (all in)' : ''}`;
+      }
+      case 'bet': return `${name} bets ${action.amount}${allInBet ? ' (all in)' : ''}`;
+      case 'raise': return `${name} raises to ${action.amount}${allInBet ? ' (all in)' : ''}`;
+      case 'allin': return `${name} is all in (${legal.maxRaiseTo})`;
+      default: return `${name} acts`;
+    }
   }
 
   /** Human/seat action entry point. */
@@ -405,6 +451,11 @@ export class Room {
       names[hs.id] = seat ? seat.name : 'Player';
     }
     this.lastResult = { ...this.hand.results, names };
+
+    // Feed: announce the winner(s) and the amount they won.
+    for (const [id, amt] of Object.entries(this.lastResult.winnings || {})) {
+      if (amt > 0) this._pushFeed(`${names[id] || 'Player'} wins ${amt}`);
+    }
     this.onChange();
 
     // Pause on the result, then clean up and either continue or end.
@@ -571,6 +622,7 @@ export class Room {
       } : null,
       blinds: this._effectiveBlinds(),
       legal,
+      feed: this.actionFeed,
       result: this.lastResult,
       standings: this.standings,
       timeRemainingMs: this._timeRemaining(),

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Seat from './Seat.jsx';
 import Card from './Card.jsx';
 import ActionBar from './ActionBar.jsx';
+import ActionFeed from './ActionFeed.jsx';
 import RSACube from './RSACube.jsx';
 import { SPEC_LABELS } from '../labels.js';
 
@@ -111,6 +112,8 @@ export default function Table({ state, actions }) {
           );
         })}
       </div>
+
+      <ActionFeed feed={state.feed} />
 
       {you?.isSpectator && settings.spectatorVisibility === 'followOne' && (
         <FollowPicker state={state} actions={actions} />

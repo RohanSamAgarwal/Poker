@@ -23,9 +23,21 @@ export const BOT_DIFFICULTIES = ['beginner', 'intermediate', 'super', 'mixed'];
 
 const STYLES = ['beginner', 'intermediate', 'super'];
 
-export function botName(difficulty, seatIndex) {
-  const label = { beginner: 'Rookie', intermediate: 'Regular', super: 'Deep Blue', mixed: 'Wildcard' };
-  return `${label[difficulty] || 'Bot'} ${seatIndex + 1}`;
+// Bots are named after the Mystery Inc. gang (Scooby-Doo). Scrappy-Doo rounds
+// out a possible 6th bot (6 seats, only 5 core names).
+export const BOT_NAMES = ['Scooby-Doo', 'Shaggy', 'Velma', 'Fred', 'Daphne', 'Scrappy-Doo'];
+
+/**
+ * Pick a bot name not already taken in the room. Random among the free ones;
+ * falls back to numbering the first name if every name is somehow in use.
+ * @param {Set<string>} used  names already at the table (bots and humans)
+ */
+export function pickBotName(used) {
+  const free = BOT_NAMES.filter((n) => !used.has(n));
+  if (free.length) return free[Math.floor(Math.random() * free.length)];
+  let i = 2;
+  while (used.has(`${BOT_NAMES[0]} ${i}`)) i++;
+  return `${BOT_NAMES[0]} ${i}`;
 }
 
 // Stable hash so a 'mixed' seat keeps one style for the whole game.
