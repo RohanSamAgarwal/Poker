@@ -1,0 +1,24 @@
+{
+  "name": "poker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multiplayer No-Limit Texas Hold'em — a Kamino game (Plunder-style host/room-code).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client install && npm --prefix client run build",
+    "start": "node server/index.js",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}
