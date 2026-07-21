@@ -26,8 +26,10 @@ function useCountdown(remainingMs) {
 // increasing clockwise. Returns CSS top/left percentages.
 function slotStyle(v, n) {
   const angle = (90 + (v * 360) / n) * (Math.PI / 180);
+  // Slightly tighter vertical radius (and a small upward shift) so the larger
+  // bottom "you" seat cards don't spill past the felt's bottom edge.
   const left = 50 + 42 * Math.cos(angle);
-  const top = 50 + 40 * Math.sin(angle);
+  const top = 47 + 37 * Math.sin(angle);
   return { left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' };
 }
 

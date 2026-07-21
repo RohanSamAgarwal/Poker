@@ -18,7 +18,7 @@ Built in phases:
 | 5 | AI bots (beginner / intermediate / super computer / mixed) | ✅ done |
 | 6 | End conditions + spectators + timers + blind escalation | ✅ done |
 | 7 | Polish (animations, reconnect, brand watermark) | ✅ done |
-| 8 | Wire into homeserver + push to GitHub | ⏳ |
+| 8 | Wire into homeserver + push to GitHub | ✅ done |
 
 ## Architecture
 

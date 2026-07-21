@@ -22,15 +22,17 @@ export default function Seat({ seat, isYou, style, showdownWin, dealKey }) {
 
   // Show two hole cards: real faces if the server sent them, else face-down.
   const holes = seat.hole || (seat.folded ? [] : [null, null]);
+  // Your own hand is rendered larger so it's easy to read at a glance.
+  const holeSize = isYou ? 'lg' : 'sm';
 
   return (
     <div className={classes} style={style}>
       {seat.isButton && <span className="dealer-btn" title="Dealer">D</span>}
 
-      <div className="seat-cards">
+      <div className={`seat-cards ${isYou ? 'mine' : ''}`}>
         {holes.map((c, i) => (
           <div key={`${dealKey}-${i}`} className="dealt" style={{ animationDelay: `${i * 90}ms` }}>
-            <Card card={c} faceDown={!c} size="sm" dim={seat.folded} />
+            <Card card={c} faceDown={!c} size={holeSize} dim={seat.folded} />
           </div>
         ))}
       </div>

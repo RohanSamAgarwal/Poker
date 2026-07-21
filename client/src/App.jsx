@@ -1,13 +1,16 @@
 import { useRoom } from './useRoom.js';
+import { useSounds } from './useSounds.js';
 import Landing from './components/Landing.jsx';
 import Lobby from './components/Lobby.jsx';
 import Table from './components/Table.jsx';
 import GameOver from './components/GameOver.jsx';
+import SoundToggle from './components/SoundToggle.jsx';
 import './styles/global.css';
 
 export default function App() {
   const room = useRoom();
   const { state, error, connected } = room;
+  useSounds(state);
 
   // Bundle the action senders once for children.
   const actions = {
@@ -35,6 +38,7 @@ export default function App() {
 
   return (
     <>
+      <SoundToggle />
       {screen}
       {state?.phase === 'ended' && <GameOver state={state} actions={actions} />}
       {/* Only nag about the connection once the user is actually in a room. */}

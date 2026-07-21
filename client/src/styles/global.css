@@ -154,9 +154,10 @@ fieldset { border: none; padding: 0; margin: 0; }
 }
 
 /* --- Seats ----------------------------------------------------------------- */
-.seat { position: absolute; width: 128px; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+.seat { position: absolute; width: 152px; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
 .seat-empty { color: rgba(255,255,255,0.35); font-size: 0.8rem; border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 0.8rem 0.6rem; width: 96px; text-align: center; }
-.seat-cards { display: flex; gap: 0.2rem; height: 48px; }
+.seat-cards { display: flex; gap: 0.25rem; min-height: 65px; align-items: flex-end; }
+.seat-cards.mine { min-height: 93px; }
 .seat-plate {
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   padding: 0.3rem 0.6rem; min-width: 108px; text-align: center;
@@ -175,20 +176,46 @@ fieldset { border: none; padding: 0; margin: 0; }
 .won-flag { font-size: 0.8rem; font-weight: 800; color: var(--ok); }
 
 /* --- Cards ----------------------------------------------------------------- */
-.card { border-radius: 7px; position: relative; display: grid; place-items: center; user-select: none; flex: none; }
-.card-sm { width: 34px; height: 48px; }
-.card-md { width: 52px; height: 74px; }
-.card-dim { opacity: 0.55; }
-.card-face { background: #f7f7fb; color: #111318; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-.card-face.suit-red { color: var(--red); }
-.card-face .card-corner { position: absolute; font-weight: 700; line-height: 1; display: flex; flex-direction: column; align-items: center; font-size: 0.72rem; }
-.card-md .card-corner { font-size: 0.9rem; }
-.card-corner b { font-weight: 700; }
-.card-corner.tl { top: 3px; left: 4px; }
-.card-corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
-.card-pip { font-size: 1.2rem; }
-.card-md .card-pip { font-size: 1.7rem; }
-.card-slot { background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.15); box-shadow: none; }
+/* Sizes are deliberately large for readability (ease of use over realism):
+   sm = opponent hole cards, lg = your own hole cards, md = community board. */
+.card { position: relative; border-radius: 9px; user-select: none; flex: none; }
+.card-sm { width: 46px; height: 65px; border-radius: 7px; }
+.card-lg { width: 66px; height: 93px; }
+.card-md { width: 86px; height: 121px; }
+.card-dim { opacity: 0.5; }
+
+.card-face {
+  background: linear-gradient(157deg, #ffffff 0%, #eceef5 100%);
+  color: #16181f;
+  box-shadow: 0 3px 7px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.card-face.suit-red { color: #d61f3c; }
+
+/* Corner index: rank stacked over its suit, tight and legible. */
+.card-index {
+  position: absolute; display: flex; flex-direction: column; align-items: center;
+  line-height: 0.9; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+}
+.card-index.tl { top: 5px; left: 6px; }
+.card-index.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.card-index .ci-rank { font-size: 0.9rem; }
+.card-index .ci-suit { font-size: 0.72rem; margin-top: 1px; }
+
+.card-center { position: absolute; inset: 0; display: grid; place-items: center; line-height: 1; font-size: 1.7rem; opacity: 0.9; }
+
+/* per-size scaling of the glyphs */
+.card-sm .card-index .ci-rank { font-size: 0.82rem; }
+.card-sm .card-index .ci-suit { font-size: 0.64rem; }
+.card-sm .card-center { font-size: 1.4rem; }
+.card-lg .card-index .ci-rank { font-size: 1.15rem; }
+.card-lg .card-index .ci-suit { font-size: 0.9rem; }
+.card-lg .card-center { font-size: 2.5rem; }
+.card-md .card-index .ci-rank { font-size: 1.5rem; }
+.card-md .card-index .ci-suit { font-size: 1.15rem; }
+.card-md .card-center { font-size: 3.4rem; }
+
+.card-slot { background: rgba(0,0,0,0.2); border: 1.5px dashed rgba(255,255,255,0.14); box-shadow: none; }
 
 /* Card back — the easter egg: Electric-Violet field + black-outline RSA cube. */
 .card-back { background: linear-gradient(145deg, var(--violet), var(--violet-deep)); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
@@ -236,6 +263,17 @@ fieldset { border: none; padding: 0; margin: 0; }
   background: #2a1420; color: #ffb3b8; border: 1px solid rgba(229,72,77,0.5);
   padding: 0.7rem 1.1rem; border-radius: 10px; z-index: 60; font-size: 0.9rem;
 }
+
+/* --- Sound toggle (always visible) ----------------------------------------- */
+.sound-toggle {
+  position: fixed; top: 0.6rem; right: 0.6rem; z-index: 65;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.05rem; line-height: 1;
+  background: var(--panel); border: 1px solid var(--line); color: var(--text);
+  cursor: pointer; opacity: 0.7; transition: opacity 0.15s, transform 0.06s;
+}
+.sound-toggle:hover { opacity: 1; }
+.sound-toggle:active { transform: scale(0.92); }
 
 /* --- Polish: animations, watermark, connection ----------------------------- */
 @keyframes dealIn {
@@ -293,7 +331,22 @@ fieldset { border: none; padding: 0; margin: 0; }
 
 @media (max-width: 640px) {
   .settings-grid { grid-template-columns: 1fr; }
-  .seat { width: 100px; }
+  .seat { width: 108px; }
   .seat-plate { min-width: 84px; }
   .felt { border-radius: 44% / 46%; }
+
+  /* Scale the (deliberately large) cards down so five fit across a phone. */
+  .card-md { width: 54px; height: 76px; }
+  .card-lg { width: 46px; height: 65px; }
+  .card-sm { width: 34px; height: 48px; }
+  .seat-cards { min-height: 48px; }
+  .seat-cards.mine { min-height: 65px; }
+  .card-md .card-center { font-size: 2.1rem; }
+  .card-md .card-index .ci-rank { font-size: 0.95rem; }
+  .card-md .card-index .ci-suit { font-size: 0.75rem; }
+  .card-lg .card-center { font-size: 1.7rem; }
+  .card-lg .card-index .ci-rank { font-size: 0.85rem; }
+  .card-sm .card-center { font-size: 1.15rem; }
+  .card-sm .card-index .ci-rank { font-size: 0.7rem; }
+  .card-sm .card-index .ci-suit { font-size: 0.55rem; }
 }
