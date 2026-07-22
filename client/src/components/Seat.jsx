@@ -1,4 +1,5 @@
 import Card from './Card.jsx';
+import { ChipPile } from './Chips.jsx';
 import { BOT_LABELS } from '../labels.js';
 
 // One player position around the table. `seat` is the per-viewer seat view from
@@ -43,12 +44,12 @@ export default function Seat({ seat, isYou, style, showdownWin, dealKey }) {
           {seat.kind === 'bot' && <span className="mini-tag">{BOT_LABELS[seat.botDifficulty]?.split(' ')[0]}</span>}
           {!seat.connected && <span className="mini-tag off">off</span>}
         </div>
-        <div className="seat-stack">{seat.stack.toLocaleString()}</div>
+        <div className="seat-stack">
+          <ChipPile amount={seat.stack} seed={seat.index + 1} size={18} />
+          <span>{seat.stack.toLocaleString()}</span>
+        </div>
       </div>
 
-      {seat.streetCommitted > 0 && (
-        <div className="seat-bet">{seat.streetCommitted.toLocaleString()}</div>
-      )}
       {seat.allIn && <div className="allin-flag">ALL IN</div>}
       {showdownWin > 0 && <div className="won-flag">+{showdownWin.toLocaleString()}</div>}
     </div>

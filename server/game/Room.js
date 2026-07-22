@@ -14,7 +14,7 @@
 
 import { Hand } from './Hand.js';
 import { defaultSettings, normalizeSettings } from './settings.js';
-import { pickBotName, decide as botDecide } from './Bot.js';
+import { pickBotName, resolveDifficulty, decide as botDecide } from './Bot.js';
 
 let seq = 0;
 const uid = (prefix) => `${prefix}:${Date.now().toString(36)}:${(seq++).toString(36)}`;
@@ -232,6 +232,7 @@ export class Room {
       id: `bot:${seatIndex}`,
       name: pickBotName(usedNames),
       botDifficulty: difficulty,
+      thinkBias: 0.8 + Math.random() * 0.4, // consistent per-bot speed (0.8–1.2×)
       stack: this.settings.startingChips,
       status: 'active',
       connected: true,
@@ -354,7 +355,7 @@ export class Room {
           ? botDecide({ legal, difficulty: seat.botDifficulty, hand: this.hand, seat })
           : (legal.canCheck ? { type: 'check' } : { type: 'fold' }); // absent human
         this._applyAndContinue(seat.id, action);
-      }, isBot ? this.botDelayMs : Math.min(this.botDelayMs, 400));
+      }, isBot ? this._botThinkMs(seat) : Math.min(this.botDelayMs, 400));
       return;
     }
 
@@ -381,6 +382,25 @@ export class Room {
   _clearActionTimer() {
     if (this.actionTimer) { clearTimeout(this.actionTimer); this.actionTimer = null; }
     this.actionDeadline = null;
+  }
+
+  /**
+   * How long a bot "thinks" before acting — randomized, longer for stronger
+   * players, with a per-seat bias (some bots are consistently slower) and the
+   * occasional long tank. Returns 0 in sync test mode so tests stay instant.
+   */
+  _botThinkMs(seat) {
+    if (this.botDelayMs <= 0) return 0;
+    const ranges = {
+      beginner: [600, 1600],
+      intermediate: [1100, 2800],
+      super: [1800, 4000], // deliberates the longest
+    };
+    const style = resolveDifficulty(seat.botDifficulty, seat.id);
+    const [lo, hi] = ranges[style] || ranges.intermediate;
+    let t = (lo + Math.random() * (hi - lo)) * (seat.thinkBias || 1);
+    if (Math.random() < 0.12) t += 1200 + Math.random() * 2200; // occasional tank
+    return Math.round(t);
   }
 
   /** Apply a validated action then continue the loop (bot chaining / settle). */
