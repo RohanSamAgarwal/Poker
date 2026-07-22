@@ -23,8 +23,9 @@ export default function Seat({ seat, isYou, style, showdownWin, dealKey }) {
 
   // Show two hole cards: real faces if the server sent them, else face-down.
   const holes = seat.hole || (seat.folded ? [] : [null, null]);
-  // Your own hand is rendered larger so it's easy to read at a glance.
-  const holeSize = isYou ? 'lg' : 'sm';
+  // Your own hand is big and easy to read; opponents' face-down cards are tiny
+  // to free up space, growing to a readable size only when revealed at showdown.
+  const holeSize = isYou ? 'lg' : (seat.hole ? 'sm' : 'xs');
 
   return (
     <div className={classes} style={style}>

@@ -30,8 +30,8 @@ function slotStyle(v, n) {
   const angle = (90 + (v * 360) / n) * (Math.PI / 180);
   // Slightly tighter vertical radius (and a small upward shift) so the larger
   // bottom "you" seat cards don't spill past the felt's bottom edge.
-  const left = 50 + 42 * Math.cos(angle);
-  const top = 47 + 37 * Math.sin(angle);
+  const left = 50 + 43 * Math.cos(angle);
+  const top = 44 + 33 * Math.sin(angle);
   return { left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' };
 }
 
@@ -145,7 +145,7 @@ function PotCounter({ collected }) {
   if (collected <= 0) return null;
   return (
     <div className="pot-counter" key={collected}>
-      <ChipPile amount={collected} seed={3} size={16} />
+      <ChipPile amount={collected} seed={3} size={24} />
       <span className="pot-amt">POT <b>{collected.toLocaleString()}</b></span>
     </div>
   );
@@ -175,13 +175,13 @@ function StreetBets({ total, street }) {
     <div className="street-bets-wrap">
       {total > 0 && (
         <div className="street-bets">
-          <ChipStack amount={total} size={20} />
+          <ChipStack amount={total} size={32} />
           <span className="street-bets-amt">{total.toLocaleString()}</span>
         </div>
       )}
       {morphAmt > 0 && (
         <div className="pot-morph" key={morphKey.current}>
-          <ChipStack amount={morphAmt} size={20} animate={false} />
+          <ChipStack amount={morphAmt} size={32} animate={false} />
         </div>
       )}
     </div>
